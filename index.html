@@ -4,13 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown Viewer</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    background: #ffffff; /* 页面背景纯白 */
+    overflow: hidden;
+}
+
+.main-content {
+    width: 900px;
+    height: 1200px;
+    background-color: #FFFFFF; /* 白色长方形 */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 0;
+}
+
+/* 顶部渐变色块 */
+.header-gradient {
+    position: absolute;
+    top:0;
+    left: 0;
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(to bottom, #98D0CF 0%, #D87879 100%);
+}
+
+/* 包含标题和正文的内容容器 */
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 390px 20px;
+}
+
+.avatar {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    top: 210px;
+    left: 30px;
+}
+
+#post-title {
+    font-size: 72px;
+    color: #222222;
+    margin: 0 0 20px 0;
+    text-align: center; /* 水平居中显示 */
+}
+
+.add-comment {
+    font-size: 32px; /* Double the assumed default of 16px */
+    color: #888888; /* Gray color */
+    text-align: left; /* Align to the left */
+    margin-top: 10px; /* Some space below the title */
+    margin-left: 20px; /* Align with the content-wrapper's padding-left */
+}
+
+#preview {
+    font-size: 28px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    color: #222222;
+    text-align: left;
+}
+    </style>
 </head>
 <body>
-    <div class="container">
-        <img src="https://picsum.photos/seed/picsum/400/200" alt="Header Image" class="header-image">
-        <h1 id="post-title"></h1>
-        <div id="preview"></div>
+    <div class="main-content">
+        <div class="header-gradient"></div>
+        <div class="content-wrapper">
+            <img src="image.png" class="avatar">
+            <p class="add-comment">💬 Add Comment</p>
+            <h1 id="post-title"></h1>
+            <div id="preview"></div>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script.js"></script>

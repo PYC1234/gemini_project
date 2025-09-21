@@ -3,21 +3,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const previewElement = document.getElementById('preview');
 
     try {
-        // Fetch the title
-        const titleResponse = await fetch('title.txt');
-        if (!titleResponse.ok) {
-            throw new Error(`HTTP error! status: ${titleResponse.status}`);
-        }
-        const titleText = await titleResponse.text();
-        titleElement.textContent = titleText.trim();
-
         // Fetch the markdown content
         const contentResponse = await fetch('content.md');
         if (!contentResponse.ok) {
             throw new Error(`HTTP error! status: ${contentResponse.status}`);
         }
         const markdownText = await contentResponse.text();
-        previewElement.innerHTML = marked.parse(markdownText);
+        
+        // Split content into title and body
+        const lines = markdownText.split('\n');
+        const title = lines[0];
+        const body = lines.slice(1).join('\n');
+
+        titleElement.textContent = title.trim();
+        previewElement.innerHTML = marked.parse(body);
 
     } catch (error) {
         console.error('Error fetching local content:', error);

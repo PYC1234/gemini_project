@@ -4,101 +4,82 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 // --- Configuration ---
-const screenshotFile = 'localhost.png';
 const outputDir = 'processed_images';
-const tempFile = 'trimmed_temp.png';
-const chunkHeight = 600;
+const fullScreenshot = 'full_screenshot.png';
+const pageWidth = 900;
+const pageHeight = 1200;
 
 /**
- * Takes a full-page screenshot of the local server.
- * @returns {boolean} - True if screenshot was successful, false otherwise.
- */
-async function takeScreenshot() {
-  console.log('--- Starting Screenshot Process ---');
-  const serverProcess = spawn('python', ['-u', '-m', 'http.server', '8000']);
-  let screenshotSuccess = false;
-
-  console.log('Starting local server...');
-  try {
-    await new Promise((resolve, reject) => {
-      serverProcess.stdout.on('data', (data) => {
-        if (data.toString().includes('Serving HTTP')) {
-          console.log('Server is running.');
-          resolve();
-        }
-      });
-      serverProcess.stderr.on('data', (data) => {
-        console.error(`Server error: ${data}`);
-        reject(data.toString());
-      });
-    });
-
-    const browser = await chromium.launch();
-    const page = await browser.newPage();
-    await page.goto('http://localhost:8000/');
-    await page.screenshot({ path: screenshotFile, fullPage: true });
-    await browser.close();
-    screenshotSuccess = true;
-    console.log(`Screenshot saved as ${screenshotFile}`);
-
-  } catch (error) {
-    console.error(`Error during screenshot process: ${error}`);
-  } finally {
-    serverProcess.kill();
-    console.log('Server stopped.');
-  }
-  return screenshotSuccess;
-}
-
-/**
- * Processes the screenshot: trims and splits it.
- */
-async function processImage() {
-  console.log('\n--- Starting Image Processing Process ---');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
-
-  try {
-    console.log(`Trimming image and saving to temporary file...`);
-    await sharp(screenshotFile).trim().toFile(tempFile);
-
-    const metadata = await sharp(tempFile).metadata();
-    const totalHeight = metadata.height;
-    const totalWidth = metadata.width;
-    console.log(`Trimmed image dimensions: ${totalWidth}x${totalHeight}`);
-
-    let chunkCount = 0;
-    for (let y = 0; y < totalHeight; y += chunkHeight) {
-      chunkCount++;
-      const currentChunkHeight = Math.min(chunkHeight, totalHeight - y);
-      const outputPath = `${outputDir}/part_${String(chunkCount).padStart(2, '0')}.png`;
-
-      console.log(`Processing chunk ${chunkCount}...`);
-      await sharp(tempFile)
-        .extract({ left: 0, top: y, width: totalWidth, height: currentChunkHeight })
-        .toFile(outputPath);
-    }
-    console.log(`\nSuccess! ${chunkCount} images saved in '${outputDir}'.`);
-
-  } catch (error) {
-    console.error('An error occurred during image processing:', error);
-  } finally {
-    if (fs.existsSync(tempFile)) {
-      fs.unlinkSync(tempFile);
-      console.log(`Cleaned up temporary file.`);
-    }
-  }
-}
-
-/**
- * Main function to run all steps.
+ * Main function to generate images.
  */
 async function main() {
-  const screenshotTaken = await takeScreenshot();
-  if (screenshotTaken) {
-    await processImage();
+  // --- 1. Setup ---
+  if (fs.existsSync(outputDir)) {
+    fs.rmSync(outputDir, { recursive: true, force: true });
   }
+  fs.mkdirSync(outputDir);
+
+  const serverProcess = spawn('python', ['-u', '-m', 'http.server', '8000']);
+  console.log('--- Starting Server ---');
+  await new Promise(resolve => serverProcess.stdout.on('data', data => {
+    if (data.toString().includes('Serving HTTP')) resolve();
+  }));
+
+  const browser = await chromium.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+  const page = await browser.newPage({ viewport: { width: pageWidth, height: pageHeight } });
+
+  // --- 2. Take Screenshot ---
+  console.log('--- Taking Screenshot ---');
+  await page.goto('http://localhost:8000/');
+  await page.screenshot({ path: fullScreenshot, fullPage: true });
+
+  await browser.close();
+  serverProcess.kill();
+  console.log('--- Server Stopped ---');
+
+  // --- 3. Process Images ---
+  console.log('--- Processing Images ---');
+  const metadata = await sharp(fullScreenshot).metadata();
+  const totalHeight = metadata.height;
+  let y = 0;
+  let i = 1;
+
+  while (y < totalHeight) {
+    const remainingHeight = totalHeight - y;
+    const currentChunkHeight = Math.min(pageHeight, remainingHeight);
+
+    if (currentChunkHeight <= 0) break;
+
+    const imageChunk = sharp(fullScreenshot)
+      .extract({ left: 0, top: y, width: pageWidth, height: currentChunkHeight });
+
+    if (currentChunkHeight < pageHeight) {
+      // Pad the image
+      await imageChunk
+        .extend({
+          top: 0,
+          bottom: pageHeight - currentChunkHeight,
+          left: 0,
+          right: 0,
+          background: { r: 255, g: 255, b: 255, alpha: 1 } // White background
+        })
+        .toFile(`${outputDir}/part_${String(i).padStart(2, '0')}.png`);
+    } else {
+      await imageChunk
+        .toFile(`${outputDir}/part_${String(i).padStart(2, '0')}.png`);
+    }
+
+    console.log(`Generated part_${String(i).padStart(2, '0')}.png`);
+    y += pageHeight;
+    i++;
+  }
+
+  // --- 4. Cleanup ---
+  fs.unlinkSync(fullScreenshot);
+  console.log('--- Cleanup Complete ---');
+  console.log('--- All Done ---');
 }
 
 main();

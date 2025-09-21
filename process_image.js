@@ -4,7 +4,8 @@ const fs = require('fs');
 const inputFile = 'localhost.png';
 const outputDir = 'processed_images';
 const tempFile = 'trimmed_temp.png';
-const chunkHeight = 600;
+const chunkWidth = 900; // Width for each chunk, maintaining 3:4 ratio
+const chunkHeight = 1200; // Height for each chunk
 
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir);
@@ -17,8 +18,7 @@ async function processImage() {
 
     const metadata = await sharp(tempFile).metadata();
     const totalHeight = metadata.height;
-    const totalWidth = metadata.width;
-    console.log(`Trimmed image dimensions: ${totalWidth}x${totalHeight}`);
+    console.log(`Trimmed image dimensions: ${chunkWidth}x${totalHeight}`);
 
     let chunkCount = 0;
     for (let y = 0; y < totalHeight; y += chunkHeight) {
@@ -29,8 +29,19 @@ async function processImage() {
       console.log(`Processing chunk ${chunkCount}...`);
       
       // Re-load the image from the temp file in every iteration to ensure a clean state
-      await sharp(tempFile)
-        .extract({ left: 0, top: y, width: totalWidth, height: currentChunkHeight })
+      const extractedImage = await sharp(tempFile)
+        .extract({ left: 0, top: y, width: chunkWidth, height: currentChunkHeight })
+        .toBuffer();
+
+      await sharp({
+          create: {
+            width: chunkWidth,
+            height: currentChunkHeight,
+            channels: 4,
+            background: { r: 255, g: 255, b: 255, alpha: 1 }
+          }
+        })
+        .composite([{ input: extractedImage, top: 0, left: 0 }])
         .toFile(outputPath);
     }
 
