@@ -10,16 +10,17 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    flex-direction: column; /* Allow vertical stacking */
+    justify-content: flex-start; /* Align content to the top */
+    /* align-items: center; Removed */
     width: 100vw;
     background: #ffffff; /* 页面背景纯白 */
-    overflow: hidden;
+    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .main-content {
-    width: 900px;
+    width: 828px; /* Changed to match case.jpg width */
     height: auto;
     background-color: #FFFFFF; /* 白色长方形 */
     display: flex;
@@ -45,7 +46,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding: 495px 20px;
+    padding: 510px 20px;
 }
 
 .avatar {
@@ -74,17 +75,86 @@ body {
 }
 
 #preview {
-    font-size: 28px;
-    line-height: 1.6;
+    font-size: 32px; /* Increased from 28px */
+    line-height: 1.8; /* Increased from 1.6 for more spacing */
     word-wrap: break-word;
     color: #222222;
     text-align: left;
     margin-top: 0;
 }
 
+#preview p {
+    margin-bottom: 1.5em; /* Increased spacing between paragraphs */
+}
+
 #preview p, #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6, #preview ul, #preview ol, #preview blockquote {
     break-inside: avoid;
 }
+    </style>
+    <style> /* New style block for the appended content */
+        .new-content-section {
+            width: 900px;
+            height: 1600px; /* Overall dimensions for this section */
+            background-color: #E6E4D7; /* Changed background color */
+            position: relative; /* For absolute positioning of children */
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', 'Heiti SC', sans-serif; /* Default font */
+            margin-top: 50px; /* Spacing from previous content */
+        }
+        .text-above-images {
+            font-family: 'Microsoft YaHei', 'Heiti SC', sans-serif;
+            font-size: 54px; /* Adjusted to fit */
+            color: #89A101;
+            position: absolute;
+            width: 100%;
+            text-align: center; /* Centered */
+            top: 100px; /* Adjusted to be above image */
+        }
+        .image-one { /* Centered image, should cover top-left one */
+            position: absolute;
+            width: 650px; /* New size */
+            height: 650px; /* New size */
+            left: 150px; /* Centered horizontally */
+            top: 400px; /* Adjusted from bottom: 1200px */
+            z-index: 2; /* Ensure it covers image-two */
+        }
+        .image-two { /* Top-left image */
+            position: absolute;
+            width: 650px; /* New size */
+            height: 650px; /* New size */
+            left: 50px; /* 100px left of image-one's top-left */
+            top: 300px; /* 100px above image-one's top */
+            opacity: 0.5; /* 50% transparency */
+            z-index: 1; /* Ensure it's behind image-one */
+        }
+        .text-below-images-main {
+            font-family: 'Microsoft YaHei', 'Heiti SC', sans-serif;
+            font-size: 72px;
+            color: #89A101;
+            position: absolute;
+            width: 100%;
+            text-align: center; /* Centered */
+            top: 1100px; /* Adjusted */
+        }
+        .text-below-images-sop {
+            font-family: 'Microsoft YaHei', 'Heiti SC', sans-serif;
+            font-size: 96px;
+            color: #89A101;
+            position: absolute;
+            width: 100%;
+            text-align: center; /* Centered */
+            top: 1200px; /* Adjusted */
+        }
+        .text-bottom {
+            font-family: 'Microsoft YaHei', sans-serif;
+            font-size: 36px;
+            color: #CC4E65;
+            position: absolute;
+            width: 100%;
+            text-align: left; /* Left-aligned */
+            bottom: 150px; /* Adjusted */
+            padding-left: 50px; /* Add some padding for left alignment */
+        }
     </style>
 </head>
 <body>
@@ -99,5 +169,16 @@ body {
     </div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script.js"></script>
+
+
+
+    <div class="new-content-section">
+        <div class="text-above-images">帮助老板们从1-10<br>打造自运转团队</div>
+        <img src="image.png" class="image-one">
+        <img src="image.png" class="image-two">
+        <div class="text-below-images-main">大康总讲</div>
+        <div class="text-below-images-sop">SOP</div>
+        <div class="text-bottom">关注我，<br>一起共同用sop建设高效组织</div>
+    </div>
 </body>
 </html>
